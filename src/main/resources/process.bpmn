@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.7.0">
+  <bpmn:collaboration id="orderProcess">
+    <bpmn:participant id="Participant_11x45l8" name="ORDER PROCESSING" processRef="OrchaAPI" />
+  </bpmn:collaboration>
+  <bpmn:process id="OrchaAPI" name="OrchaAPI" isExecutable="true">
+    <bpmn:sequenceFlow id="SequenceFlow1" sourceRef="StartEvent" targetRef="paymentProcess" />
+    <bpmn:startEvent id="StartEvent" name="Request&#10;received">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="customerId" label="Customer ID" type="string" defaultValue="1234" />
+          <camunda:formField id="orderItem" label="Select Order Item" type="enum">
+            <camunda:value id="mobile" name="Samsung mobile, Price: 10000" />
+            <camunda:value id="tv" name="TCL tv, Price: 20000" />
+            <camunda:value id="laptop" name="Dell laptop, Price: 30000" />
+          </camunda:formField>
+          <camunda:formField id="orderID" label="Order ID" type="string" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:outgoing>SequenceFlow1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_0usgem1" sourceRef="paymentProcess" targetRef="paymentCheck" />
+    <bpmn:sequenceFlow id="Flow_0nv8d0i" sourceRef="paymentCheck" targetRef="paymentSuccessNotification">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${paymentCheck == true}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1qieimx" sourceRef="paymentCheck" targetRef="paymentFailNotification" />
+    <bpmn:sequenceFlow id="Flow_1eta2ki" sourceRef="paymentSuccessNotification" targetRef="inventoryProcess" />
+    <bpmn:sequenceFlow id="Flow_02d7mw6" sourceRef="inventoryProcess" targetRef="shippingProcess" />
+    <bpmn:callActivity id="paymentProcess" name="Initiate Payment" calledElement="paymentProcessD">
+      <bpmn:extensionElements>
+        <camunda:in variables="all" />
+        <camunda:out variables="all" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow1</bpmn:incoming>
+      <bpmn:outgoing>Flow_0usgem1</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="inventoryProcess" name="Goods Fetched" calledElement="inventoryProcessD">
+      <bpmn:extensionElements>
+        <camunda:in variables="all" />
+        <camunda:out variables="all" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1eta2ki</bpmn:incoming>
+      <bpmn:outgoing>Flow_02d7mw6</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="paymentCheck" default="Flow_1qieimx">
+      <bpmn:incoming>Flow_0usgem1</bpmn:incoming>
+      <bpmn:outgoing>Flow_0nv8d0i</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1qieimx</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:intermediateThrowEvent id="paymentFailNotification" name="Payment Failure Notification">
+      <bpmn:incoming>Flow_1qieimx</bpmn:incoming>
+      <bpmn:outgoing>Flow_0k1sxx8</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_158ch3j" camunda:class="mmcdemo.orchaapi.service.notification.PaymentFailNotificationService" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:endEvent id="Event_0yqyi2n">
+      <bpmn:incoming>Flow_0k1sxx8</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0k1sxx8" sourceRef="paymentFailNotification" targetRef="Event_0yqyi2n" />
+    <bpmn:intermediateThrowEvent id="paymentSuccessNotification" name="Payment Recvd Notification">
+      <bpmn:incoming>Flow_0nv8d0i</bpmn:incoming>
+      <bpmn:outgoing>Flow_1eta2ki</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_0tsaoh6" camunda:class="mmcdemo.orchaapi.service.notification.PaymentSuccessNotificationService" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:sequenceFlow id="Flow_1rxhxkf" sourceRef="shippingProcess" targetRef="Gateway_0g2fpr9" />
+    <bpmn:sequenceFlow id="Flow_09elkpc" sourceRef="Gateway_0g2fpr9" targetRef="goodsShippedNotification">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${ status == "Success" }</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_144osec" sourceRef="Gateway_0g2fpr9" targetRef="shippingFailedNotification" />
+    <bpmn:sequenceFlow id="Flow_1cegyzs" sourceRef="shippingFailedNotification" targetRef="Event_143kdew" />
+    <bpmn:callActivity id="shippingProcess" name="Goods Shipped" calledElement="shippingProcessD">
+      <bpmn:extensionElements>
+        <camunda:out variables="all" />
+        <camunda:in variables="all" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_02d7mw6</bpmn:incoming>
+      <bpmn:outgoing>Flow_1rxhxkf</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:exclusiveGateway id="Gateway_0g2fpr9" default="Flow_144osec">
+      <bpmn:incoming>Flow_1rxhxkf</bpmn:incoming>
+      <bpmn:outgoing>Flow_09elkpc</bpmn:outgoing>
+      <bpmn:outgoing>Flow_144osec</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:intermediateThrowEvent id="shippingFailedNotification" name="Shipping Failed Notification">
+      <bpmn:incoming>Flow_144osec</bpmn:incoming>
+      <bpmn:outgoing>Flow_1cegyzs</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_02vmhoi" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:intermediateThrowEvent id="goodsShippedNotification" name="Goods Shipped Notification">
+      <bpmn:incoming>Flow_09elkpc</bpmn:incoming>
+      <bpmn:outgoing>Flow_1x5pf5q</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_0r5p1rq" camunda:class="mmcdemo.orchaapi.service.notification.GoodsShippedNotificationService" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:endEvent id="Event_143kdew">
+      <bpmn:incoming>Flow_1cegyzs</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1x5pf5q" sourceRef="goodsShippedNotification" targetRef="Activity_1d5c933" />
+    <bpmn:endEvent id="Event_1v544r1">
+      <bpmn:incoming>Flow_0zblqjw</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0zblqjw" sourceRef="Activity_1d5c933" targetRef="Event_1v544r1" />
+    <bpmn:userTask id="Activity_1d5c933" name="Done !!" camunda:assignee="demo">
+      <bpmn:incoming>Flow_1x5pf5q</bpmn:incoming>
+      <bpmn:outgoing>Flow_0zblqjw</bpmn:outgoing>
+    </bpmn:userTask>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="orderProcess">
+      <bpmndi:BPMNShape id="Participant_11x45l8_di" bpmnElement="Participant_11x45l8" isHorizontal="true">
+        <dc:Bounds x="130" y="60" width="1140" height="310" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_08va5r8_di" bpmnElement="SequenceFlow1">
+        <di:waypoint x="208" y="180" />
+        <di:waypoint x="229" y="180" />
+        <di:waypoint x="229" y="130" />
+        <di:waypoint x="250" y="130" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="228" y="95" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0usgem1_di" bpmnElement="Flow_0usgem1">
+        <di:waypoint x="350" y="130" />
+        <di:waypoint x="415" y="130" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0nv8d0i_di" bpmnElement="Flow_0nv8d0i">
+        <di:waypoint x="465" y="130" />
+        <di:waypoint x="522" y="130" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1qieimx_di" bpmnElement="Flow_1qieimx">
+        <di:waypoint x="440" y="155" />
+        <di:waypoint x="440" y="202" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1eta2ki_di" bpmnElement="Flow_1eta2ki">
+        <di:waypoint x="558" y="130" />
+        <di:waypoint x="640" y="130" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_02d7mw6_di" bpmnElement="Flow_02d7mw6">
+        <di:waypoint x="690" y="170" />
+        <di:waypoint x="690" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0k1sxx8_di" bpmnElement="Flow_0k1sxx8">
+        <di:waypoint x="440" y="238" />
+        <di:waypoint x="440" y="302" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1rxhxkf_di" bpmnElement="Flow_1rxhxkf">
+        <di:waypoint x="740" y="280" />
+        <di:waypoint x="870" y="280" />
+        <di:waypoint x="870" y="245" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_09elkpc_di" bpmnElement="Flow_09elkpc">
+        <di:waypoint x="870" y="195" />
+        <di:waypoint x="870" y="140" />
+        <di:waypoint x="922" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_144osec_di" bpmnElement="Flow_144osec">
+        <di:waypoint x="895" y="220" />
+        <di:waypoint x="940" y="220" />
+        <di:waypoint x="940" y="282" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1cegyzs_di" bpmnElement="Flow_1cegyzs">
+        <di:waypoint x="958" y="300" />
+        <di:waypoint x="1072" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1x5pf5q_di" bpmnElement="Flow_1x5pf5q">
+        <di:waypoint x="958" y="140" />
+        <di:waypoint x="990" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0zblqjw_di" bpmnElement="Flow_0zblqjw">
+        <di:waypoint x="1090" y="140" />
+        <di:waypoint x="1122" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent">
+        <dc:Bounds x="172" y="162" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="170" y="198" width="42" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0p1byu0_di" bpmnElement="paymentProcess">
+        <dc:Bounds x="250" y="90" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0wrolla_di" bpmnElement="inventoryProcess">
+        <dc:Bounds x="640" y="90" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_19nd5pg_di" bpmnElement="paymentCheck" isMarkerVisible="true">
+        <dc:Bounds x="415" y="105" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0gpskx1_di" bpmnElement="paymentSuccessNotification">
+        <dc:Bounds x="522" y="112" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="501" y="155" width="78" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_15rlr92_di" bpmnElement="paymentFailNotification">
+        <dc:Bounds x="422" y="202" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="330.5" y="206" width="81" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0yqyi2n_di" bpmnElement="Event_0yqyi2n">
+        <dc:Bounds x="422" y="302" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_06tobeh_di" bpmnElement="shippingProcess">
+        <dc:Bounds x="640" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0g2fpr9_di" bpmnElement="Gateway_0g2fpr9" isMarkerVisible="true">
+        <dc:Bounds x="845" y="195" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0uo3k3c_di" bpmnElement="shippingFailedNotification">
+        <dc:Bounds x="922" y="282" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="904" y="325" width="76" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0m8q3wv_di" bpmnElement="goodsShippedNotification">
+        <dc:Bounds x="922" y="122" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="904" y="165" width="76" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_143kdew_di" bpmnElement="Event_143kdew">
+        <dc:Bounds x="1072" y="282" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1v544r1_di" bpmnElement="Event_1v544r1">
+        <dc:Bounds x="1122" y="122" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1s3lymj_di" bpmnElement="Activity_1d5c933">
+        <dc:Bounds x="990" y="100" width="100" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

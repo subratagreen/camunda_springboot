@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0h2rnlc" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.7.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.14.0">
+  <bpmn:process id="shippingProcessD" isExecutable="true">
+    <bpmn:extensionElements>
+      <camunda:properties>
+        <camunda:property name="status" value="${status}" />
+      </camunda:properties>
+    </bpmn:extensionElements>
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_18vkhnt</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:endEvent id="Event_13tncoa">
+      <bpmn:incoming>Flow_0wwn1x5</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_18vkhnt" sourceRef="StartEvent_1" targetRef="Activity_062o3a5" />
+    <bpmn:sequenceFlow id="Flow_0wwn1x5" sourceRef="Activity_0i76x6h" targetRef="Event_13tncoa" />
+    <bpmn:serviceTask id="Activity_0i76x6h" name="address checker">
+      <bpmn:extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="method">GET</camunda:inputParameter>
+            <camunda:inputParameter name="url">https://api.postalpincode.in/pincode/${postcode}</camunda:inputParameter>
+            <camunda:outputParameter name="response">
+              <camunda:script scriptFormat="javascript" resource="classpath://static/scripts/postcodeChecker.js" />
+            </camunda:outputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+        <camunda:inputOutput>
+          <camunda:outputParameter name="status">${status}</camunda:outputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0ldwvqz</bpmn:incoming>
+      <bpmn:outgoing>Flow_0wwn1x5</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_0ldwvqz" sourceRef="Activity_062o3a5" targetRef="Activity_0i76x6h" />
+    <bpmn:userTask id="Activity_062o3a5" name="Enter Postcode">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="postcode" label="postcode" type="string" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_18vkhnt</bpmn:incoming>
+      <bpmn:outgoing>Flow_0ldwvqz</bpmn:outgoing>
+    </bpmn:userTask>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="shippingProcessD">
+      <bpmndi:BPMNEdge id="Flow_0ldwvqz_di" bpmnElement="Flow_0ldwvqz">
+        <di:waypoint x="390" y="117" />
+        <di:waypoint x="500" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0wwn1x5_di" bpmnElement="Flow_0wwn1x5">
+        <di:waypoint x="600" y="117" />
+        <di:waypoint x="692" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_18vkhnt_di" bpmnElement="Flow_18vkhnt">
+        <di:waypoint x="215" y="117" />
+        <di:waypoint x="290" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="179" y="99" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1eya8zx_di" bpmnElement="Activity_0i76x6h">
+        <dc:Bounds x="500" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0ibbrlu_di" bpmnElement="Activity_062o3a5">
+        <dc:Bounds x="290" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_13tncoa_di" bpmnElement="Event_13tncoa">
+        <dc:Bounds x="692" y="99" width="36" height="36" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

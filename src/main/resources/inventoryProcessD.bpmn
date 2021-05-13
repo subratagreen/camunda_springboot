@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_163qwjf" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.7.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.14.0">
+  <bpmn:process id="inventoryProcessD" isExecutable="true">
+    <bpmn:documentation>connect to DB, to get the inventory and if good are present deliver immidiately or inform the delay</bpmn:documentation>
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_1hzcisv</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_1hzcisv" sourceRef="StartEvent_1" targetRef="Activity_03l9qjg" />
+    <bpmn:userTask id="Activity_03l9qjg" name="inventory Process started">
+      <bpmn:incoming>Flow_1hzcisv</bpmn:incoming>
+      <bpmn:outgoing>Flow_1hvk4ja</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="Event_11i51sx">
+      <bpmn:incoming>Flow_10k3zya</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1hvk4ja" sourceRef="Activity_03l9qjg" targetRef="Activity_0mz4yf7" />
+    <bpmn:sequenceFlow id="Flow_10k3zya" sourceRef="Activity_0mz4yf7" targetRef="Event_11i51sx" />
+    <bpmn:serviceTask id="Activity_0mz4yf7" name="inventory service" camunda:class="mmcdemo.orchaapi.service.inv.InventoryService">
+      <bpmn:incoming>Flow_1hvk4ja</bpmn:incoming>
+      <bpmn:outgoing>Flow_10k3zya</bpmn:outgoing>
+    </bpmn:serviceTask>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="inventoryProcessD">
+      <bpmndi:BPMNEdge id="Flow_1hzcisv_di" bpmnElement="Flow_1hzcisv">
+        <di:waypoint x="215" y="117" />
+        <di:waypoint x="270" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1hvk4ja_di" bpmnElement="Flow_1hvk4ja">
+        <di:waypoint x="370" y="117" />
+        <di:waypoint x="440" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_10k3zya_di" bpmnElement="Flow_10k3zya">
+        <di:waypoint x="540" y="117" />
+        <di:waypoint x="612" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="179" y="99" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0yo4l6w_di" bpmnElement="Activity_03l9qjg">
+        <dc:Bounds x="270" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_11i51sx_di" bpmnElement="Event_11i51sx">
+        <dc:Bounds x="612" y="99" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1lahaqe_di" bpmnElement="Activity_0mz4yf7">
+        <dc:Bounds x="440" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
